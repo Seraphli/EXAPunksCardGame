@@ -2,7 +2,7 @@
 from PIL import ImageGrab
 import cv2
 from util import get_path
-from play import Cfg
+from cfg import Cfg
 
 
 def crop_template_from_snapshot():

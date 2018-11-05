@@ -2,39 +2,9 @@ import pyautogui
 import cv2
 from PIL import ImageGrab
 from util import get_path
-
-# heart 红桃
-# spade 黑桃
-# club 梅花
-# diamond 方块
-
-CardNo = {
-    0: 'heart',
-    1: 'spade',
-    2: 'club',
-    3: 'diamond',
-    4: 'red_10',
-    5: 'red_9',
-    6: 'red_8',
-    7: 'red_7',
-    8: 'red_6',
-    9: 'black_10',
-    10: 'black_9',
-    11: 'black_8',
-    12: 'black_7',
-    13: 'black_6',
-}
-
-
-class Cfg(object):
-    COL = 9
-    ROW = 4
-    X0 = 370
-    Y0 = 464
-    X_INTERVAL = 134
-    Y_INTERVAL = 30
-    W = 15
-    H = 15
+from card_game import CardGame
+import copy
+from cfg import CardNo, Cfg
 
 
 class CVProc(object):
@@ -57,21 +27,28 @@ class CVProc(object):
         assert im is not None, 'Take a snapshot first!'
         im.save('snapshot.png', 'PNG')
         im = cv2.imread('snapshot.png')
-        self.table = []
+        table = []
+        readable_table = []
         for i in range(Cfg.COL):
-            self.table.append([])
-            for j in range(Cfg.ROW):
+            table.append([-1])
+            readable_table.append(['empty'])
+            for j in range(Cfg.ROW + 4):
                 x = Cfg.X0 + i * Cfg.X_INTERVAL
                 y = Cfg.Y0 + j * Cfg.Y_INTERVAL
                 raw_im = im[y:y + Cfg.H, x:x + Cfg.W, :]
-                cv2.imwrite('temp.png', raw_im)
                 no = self.get_one_card(raw_im)
-                self.table[-1].append(CardNo[no])
+                if no is not None:
+                    table[-1].append(no)
+                    readable_table[-1].append(CardNo[no])
+
+        return table, readable_table
 
 
 def main():
     cvp = CVProc()
-    cvp.get_card_table()
+    table, readable_table = cvp.get_card_table()
+    cg = CardGame(copy.deepcopy(table))
+    cg.get_action()
 
 
 if __name__ == '__main__':
