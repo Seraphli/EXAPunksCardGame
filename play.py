@@ -5,6 +5,7 @@ from util import get_path
 from card_game import CardGame
 import copy
 from cfg import CardNo, Cfg
+from tqdm import tqdm
 
 
 class CVProc(object):
@@ -44,11 +45,29 @@ class CVProc(object):
         return table, readable_table
 
 
+def play_game(cg, actions):
+    if cg.game_over():
+        return True, actions
+    if len(actions) > 50:
+        return False, actions
+    a = cg.get_action()
+    for _a in tqdm(a):
+        _cg = cg.clone()
+        _cg.take_action(_a)
+        _actions = copy.deepcopy(actions)
+        _actions.append(_a)
+        res = play_game(_cg, _actions)
+        if res[0]:
+            return True, res[1]
+    return False, actions
+
+
 def main():
     cvp = CVProc()
     table, readable_table = cvp.get_card_table()
     cg = CardGame(copy.deepcopy(table))
-    cg.get_action()
+    res = play_game(cg, [])
+    print(res)
 
 
 if __name__ == '__main__':
