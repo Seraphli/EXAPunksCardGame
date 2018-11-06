@@ -5,7 +5,7 @@ from util import get_path
 from card_game import CardGame
 import copy
 from cfg import CardNo, Cfg
-from tqdm import tqdm
+from tqdm import trange
 
 
 class CVProc(object):
@@ -45,17 +45,27 @@ class CVProc(object):
         return table, readable_table
 
 
+def clone(o):
+    import pickle
+    return pickle.loads(pickle.dumps(o))
+
+
 def play_game(cg, actions):
     if cg.game_over():
         return True, actions
-    if len(actions) > 50:
+    if len(actions) > 10:
         return False, actions
     a = cg.get_action()
-    for _a in tqdm(a):
-        _cg = cg.clone()
-        _cg.take_action(_a)
+    l_a = len(a)
+    if len(actions) < 5:
+        g = trange(l_a)
+    else:
+        g = range(l_a)
+    for a_idx in g:
         _actions = copy.deepcopy(actions)
-        _actions.append(_a)
+        _actions.append(clone(a[a_idx]))
+        _cg = cg.clone()
+        _cg.take_action(_cg.get_action()[a_idx])
         res = play_game(_cg, _actions)
         if res[0]:
             return True, res[1]

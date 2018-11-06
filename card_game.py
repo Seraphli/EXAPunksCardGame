@@ -68,6 +68,7 @@ class CardGame(object):
     def take_action(self, a):
         card_a, card_b = a
         if card_a.pos[0] == 10:
+            self.table[card_b.pos[0]].remove(card_b)
             card_b.pos = (10, 0)
             self.free_slot = card_b
         elif card_b.pos[0] == 10:
@@ -83,6 +84,7 @@ class CardGame(object):
                 row += 1
 
             for c in cards:
+                self.table[c.pos[0]].remove(c)
                 c.pos = (card_a.pos[0], len(self.table[card_a.pos[0]]))
                 self.table[card_a.pos[0]].append(c)
 
@@ -114,6 +116,21 @@ class CardGame(object):
         if self.free_slot.no != -1:
             is_game_over = False
         return is_game_over
+
+    def game_progress(self):
+        progress = 0
+        for col in self.table:
+            if len(col) == 1 and (col[0].no == -1 or col[0].no == -2):
+                progress += 1
+            elif len(col) == 6:
+                _progress = 0
+                for j in range(len(col) - 1, 0, -1):
+                    if self.available(col[j - 1].no, col[j].no):
+                        _progress += 1
+                    else:
+                        break
+                progress += _progress / 6
+        return progress / 8
 
     def clone(self):
         import pickle
