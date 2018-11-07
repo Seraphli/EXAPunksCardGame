@@ -29,7 +29,7 @@ class Node(object):
         lambda c: c.wins/c.visits + UCTK * sqrt(2*log(self.visits)/c.visits
         to vary the amount of exploration versus exploitation.
         """
-        s = sorted(self.child_nodes, key=lambda c: c.wins / c.visits + sqrt(
+        s = sorted(self.child_nodes, key=lambda c: c.Q + sqrt(
             2 * log(self.visits) / c.visits))[-1]
         return s
 
@@ -51,9 +51,15 @@ class Node(object):
         self.visits += 1
         self.wins += result
 
+    @property
+    def Q(self):
+        return self.wins / self.visits
+
     def __repr__(self):
-        return '[M:' + str(self.move) + ' W/V:' + str(self.wins) + '/' + \
-               str(self.visits) + ' U:' + str(self.untried_moves) + ']'
+        return '[M:' + str(self.move) + \
+               ' W/V:' + str(round(self.wins, 2)) + '/' + str(self.visits) + \
+               ' Q:' + str(round(self.Q, 2)) + \
+               ' U:' + str(self.untried_moves) + ']'
 
     def tree_to_string(self, indent):
         s = self.indent_string(indent) + str(self)
@@ -124,4 +130,5 @@ def uct(root_state, iter_max, verbose=False):
         print(root_node.children_to_string())
 
     # return the move that was most visited
-    return sorted(root_node.child_nodes, key=lambda c: c.visits)[-1].move
+    return sorted(root_node.child_nodes,
+                  key=lambda c: c.Q)[-1].move

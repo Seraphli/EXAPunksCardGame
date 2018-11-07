@@ -1,4 +1,4 @@
-from cfg import Cfg
+from cfg import Cfg, CardNo, SpecialCardNo
 
 
 class Card(object):
@@ -7,7 +7,10 @@ class Card(object):
         self.pos = pos
 
     def __repr__(self):
-        return f'no: {self.no}, pos: {self.pos}'
+        if self.no in CardNo:
+            return f'c: {CardNo[self.no]}, pos: {self.pos}'
+        else:
+            return f'c: {SpecialCardNo[self.no]}, pos: {self.pos}'
 
 
 class Slot(Card):
@@ -36,7 +39,7 @@ class CardGame(object):
 
             if len(col) > 2:
                 stack = False
-                for j in range(len(col) - 1, 1, -1):
+                for j in range(len(col) - 1, 0, -1):
                     if self.available(col[j - 1].no, col[j].no):
                         stack = True
                     else:
@@ -59,23 +62,28 @@ class CardGame(object):
         actions = []
         for s in available_slots:
             for c in movable_cards:
-                if s.pos == c.pos:
+                if s.pos[0] == c.pos[0]:
+                    continue
+                if s.pos[0] == 10 and len(self.table[c.pos[0]]) != c.pos[1]:
                     continue
                 if self.available(s.no, c.no):
-                    actions.append((s, c))
+                    actions.append((s.pos, c.pos))
         return actions
 
     def take_action(self, a):
-        card_a, card_b = a
-        if card_a.pos[0] == 10:
-            self.table[card_b.pos[0]].remove(card_b)
+        card_a_pos, card_b_pos = a
+        if card_a_pos[0] == 10:
+            card_b = self.table[card_b_pos[0]][card_b_pos[1]]
+            self.table[card_b_pos[0]].remove(card_b)
             card_b.pos = (10, 0)
             self.free_slot = card_b
-        elif card_b.pos[0] == 10:
-            card_b.pos = (card_a.pos[0], len(self.table[card_a.pos[0]]))
-            self.table[card_a.pos[0]].append(card_b)
+        elif card_b_pos[0] == 10:
+            card_b = self.free_slot
+            card_b.pos = (card_a_pos[0], len(self.table[card_a_pos[0]]))
+            self.table[card_a_pos[0]].append(card_b)
             self.free_slot = Card(-1, (10, 0))
         else:
+            card_b = self.table[card_b_pos[0]][card_b_pos[1]]
             cards = [card_b]
             row = card_b.pos[1]
             while len(self.table[card_b.pos[0]]) - 1 > row:
@@ -85,19 +93,21 @@ class CardGame(object):
 
             for c in cards:
                 self.table[c.pos[0]].remove(c)
-                c.pos = (card_a.pos[0], len(self.table[card_a.pos[0]]))
-                self.table[card_a.pos[0]].append(c)
+                c.pos = (card_a_pos[0], len(self.table[card_a_pos[0]]))
+                self.table[card_a_pos[0]].append(c)
 
             # Check if the col need fold
-            if len(self.table[card_a.pos[0]]) == 5:
-                card_no = self.table[card_a.pos[0]][1].no
-                fold = True
-                for i in range(2, 5):
-                    if card_no != self.table[card_a.pos[0]][i].no:
-                        fold = False
-                        break
-                if fold:
-                    self.table[card_a.pos[0]] = [Card(-2, (card_a.pos[0], 0))]
+            if len(self.table[card_a_pos[0]]) == 5:
+                card_no = self.table[card_a_pos[0]][1].no
+                if card_no < 4:
+                    fold = True
+                    for i in range(2, 5):
+                        if card_no != self.table[card_a_pos[0]][i].no:
+                            fold = False
+                            break
+                    if fold:
+                        self.table[card_a_pos[0]] = [
+                            Card(-2, (card_a_pos[0], 0))]
 
     def game_over(self):
         is_game_over = True
@@ -115,6 +125,8 @@ class CardGame(object):
                 break
         if self.free_slot.no != -1:
             is_game_over = False
+        if not is_game_over and not self.get_action():
+            is_game_over = True
         return is_game_over
 
     def game_progress(self):
@@ -129,27 +141,39 @@ class CardGame(object):
                         _progress += 1
                     else:
                         break
-                progress += _progress / 6
-        return progress / 8
+                progress += _progress / 5
+            else:
+                _progress = 0
+                for j in range(len(col) - 1, 0, -1):
+                    if self.available(col[j - 1].no, col[j].no):
+                        _progress += 1
+                    else:
+                        break
+                progress += _progress / len(col)
+        return progress / 9
 
     def clone(self):
         import pickle
         return pickle.loads(pickle.dumps(self))
 
     @staticmethod
-    def available(card_a, card_b):
-        if card_a == -1:
+    def available(card_a_no, card_b_no):
+        if card_a_no == -1:
             return True
-        if card_a < 4 and card_a == card_b:
+        if card_a_no < 4 and card_a_no == card_b_no:
             return True
-        if 4 <= card_a <= 7 and card_b - card_a == 6:
+        if 4 <= card_a_no <= 7 and card_b_no - card_a_no == 6:
             return True
-        if 9 <= card_a <= 12 and card_a - card_b == 4:
+        if 9 <= card_a_no <= 12 and card_a_no - card_b_no == 4:
             return True
         return False
 
 
 class CardGameState(CardGame):
+    def __init__(self, table):
+        super(CardGameState, self).__init__(table)
+        self.player_just_moved = 0
+
     def do_move(self, move):
         self.take_action(move)
 
