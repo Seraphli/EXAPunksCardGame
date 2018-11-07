@@ -1,6 +1,6 @@
 import pyautogui
 import cv2
-from PIL import ImageGrab
+import pyscreenshot as ImageGrab
 from util import get_path
 from card_game import CardGameState
 import copy
@@ -24,8 +24,7 @@ class CVProc(object):
                 return k
 
     def get_card_table(self):
-        im = ImageGrab.grabclipboard()
-        assert im is not None, 'Take a snapshot first!'
+        im = ImageGrab.grab()
         im.save('snapshot.png', 'PNG')
         im = cv2.imread('snapshot.png')
         table = []
@@ -50,6 +49,7 @@ def main():
     table, readable_table = cvp.get_card_table()
     cg = CardGameState(copy.deepcopy(table))
     moves = uct_play_game(cg)
+    print(moves)
 
 
 if __name__ == '__main__':
