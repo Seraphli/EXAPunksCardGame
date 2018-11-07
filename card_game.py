@@ -34,9 +34,8 @@ class CardGame(object):
         # Last card
         for i in range(Cfg.COL):
             col = self.table[i]
-            if len(col) > 1:
-                movable_cards.append(col[-1])
 
+            stack = False
             if len(col) > 2:
                 stack = False
                 for j in range(len(col) - 1, 0, -1):
@@ -46,6 +45,9 @@ class CardGame(object):
                         break
                 if stack:
                     movable_cards.append(col[j])
+
+            if len(col) > 1 and not stack:
+                movable_cards.append(col[-1])
 
         if self.free_slot.no != -1:
             movable_cards.append(self.free_slot)
@@ -65,6 +67,12 @@ class CardGame(object):
                 if s.pos[0] == c.pos[0]:
                     continue
                 if s.pos[0] == 10 and len(self.table[c.pos[0]]) != c.pos[1]:
+                    continue
+                if s.no == self.table[c.pos[0]][c.pos[1] - 1]:
+                    continue
+                if s.pos[0] == 10 and \
+                        self.available(self.table[c.pos[0]][c.pos[1] - 1].no,
+                                       self.table[c.pos[0]][c.pos[1]].no):
                     continue
                 if self.available(s.no, c.no):
                     actions.append((s.pos, c.pos))

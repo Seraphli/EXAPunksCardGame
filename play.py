@@ -6,6 +6,8 @@ from card_game import CardGameState
 import copy
 from cfg import CardNo, Cfg
 from auto_play import uct_play_game
+import time
+from direct_input import PressLMouse, ReleaseLMouse
 
 
 class CVProc(object):
@@ -24,8 +26,8 @@ class CVProc(object):
                 return k
 
     def get_card_table(self):
-        im = ImageGrab.grab()
-        im.save('snapshot.png', 'PNG')
+        # im = ImageGrab.grab()
+        # im.save('snapshot.png', 'PNG')
         im = cv2.imread('snapshot.png')
         table = []
         readable_table = []
@@ -44,12 +46,48 @@ class CVProc(object):
         return table, readable_table
 
 
+def convert_pos(idxes):
+    if idxes[0] == 10:
+        return 1425, 300
+    else:
+        return (Cfg.X0 + idxes[0] * Cfg.X_INTERVAL,
+                Cfg.Y0 + (idxes[1] - 1) * Cfg.Y_INTERVAL)
+
+
+def perform_moves(moves):
+    for move in moves:
+        s, c = move
+        start_pos = convert_pos(c)
+        end_pos = convert_pos(s)
+        pyautogui.moveTo(start_pos[0], start_pos[1], duration=0.1)
+        time.sleep(0.1)
+        PressLMouse(0, 0)
+        time.sleep(0.1)
+        pyautogui.moveTo(end_pos[0], end_pos[1] + 30, duration=0.1)
+        time.sleep(0.1)
+        ReleaseLMouse(0, 0)
+        time.sleep(0.1)
+
+
 def main():
-    cvp = CVProc()
-    table, readable_table = cvp.get_card_table()
-    cg = CardGameState(copy.deepcopy(table))
-    moves = uct_play_game(cg)
-    print(moves)
+    # Sleep 5 sec for user to switch to game
+    time.sleep(5)
+    n_game = 2
+    for _ in range(n_game):
+        # Start new game
+        # pyautogui.moveTo(1375, 900)
+        # PressLMouse(0, 0)
+        # time.sleep(0.1)
+        # ReleaseLMouse(0, 0)
+        # time.sleep(12)
+
+        cvp = CVProc()
+        table, readable_table = cvp.get_card_table()
+        cg = CardGameState(copy.deepcopy(table))
+        moves = uct_play_game(cg)
+
+        # perform_moves(moves)
+        # time.sleep(2)
 
 
 if __name__ == '__main__':
