@@ -147,3 +147,14 @@ class CardGame(object):
         if 9 <= card_a <= 12 and card_a - card_b == 4:
             return True
         return False
+
+
+class CardGameState(CardGame):
+    def do_move(self, move):
+        self.take_action(move)
+
+    def get_moves(self):
+        return self.get_action()
+
+    def get_result(self, playerjm):
+        return self.game_progress()
