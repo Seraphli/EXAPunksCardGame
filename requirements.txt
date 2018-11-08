@@ -1,0 +1,4 @@
+opencv-python==3.4.2.17
+PyAutoGUI==0.9.38
+pyscreenshot==0.4.2
+tqdm==4.24.0
