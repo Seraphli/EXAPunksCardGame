@@ -80,27 +80,15 @@ def uct(root_state, iter_max, verbose=False, max_depth=50):
 
 
 def uct_play_game(cg):
-    max_depth = 100
-    moves = []
+    max_depth = 50
     _cg = cg.clone()
-    while not cg.game_over() and max_depth > 0:
-        a_n = len(cg.get_moves())
-        if a_n == 1:
-            m = cg.get_moves()[0]
-        else:
-            m = uct(cg, min(a_n * 400, 2000), max_depth=max_depth)
-            if isinstance(m, list):
-                moves.extend(m)
-                break
-        moves.append(m)
-        cg.do_move(m)
-        max_depth -= 1
-
-    for move in moves:
-        _cg.do_move(move)
-    print(_cg.game_over())
-    print(_cg.game_progress())
-    return moves
+    moves = uct(cg, 2000, max_depth=max_depth)
+    if isinstance(moves, list):
+        for move in moves:
+            _cg.do_move(move)
+        if _cg.game_over() and _cg.game_progress() == 1.0:
+            return moves
+    return []
 
 
 def debug_play_game(cg):

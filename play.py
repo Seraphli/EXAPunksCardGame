@@ -26,8 +26,8 @@ class CVProc(object):
                 return k
 
     def get_card_table(self):
-        # im = ImageGrab.grab()
-        # im.save('snapshot.png', 'PNG')
+        im = ImageGrab.grab()
+        im.save('snapshot.png', 'PNG')
         im = cv2.imread('snapshot.png')
         table = []
         readable_table = []
@@ -75,19 +75,19 @@ def main():
     n_game = 2
     for _ in range(n_game):
         # Start new game
-        # pyautogui.moveTo(1375, 900)
-        # PressLMouse(0, 0)
-        # time.sleep(0.1)
-        # ReleaseLMouse(0, 0)
-        # time.sleep(12)
+        pyautogui.moveTo(1375, 900)
+        PressLMouse(0, 0)
+        time.sleep(0.1)
+        ReleaseLMouse(0, 0)
+        time.sleep(12)
 
         cvp = CVProc()
         table, readable_table = cvp.get_card_table()
         cg = CardGameState(copy.deepcopy(table))
         moves = uct_play_game(cg)
-
-        # perform_moves(moves)
-        # time.sleep(2)
+        if moves:
+            perform_moves(moves)
+            time.sleep(2)
 
 
 if __name__ == '__main__':
