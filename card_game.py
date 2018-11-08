@@ -2,15 +2,22 @@ from cfg import Cfg, CardNo, SpecialCardNo
 
 
 class Card(object):
-    def __init__(self, no, pos):
+    def __init__(self, no, pos, verbose=0):
         self.no = no
         self.pos = pos
+        self.verbose = verbose
 
     def __repr__(self):
-        if self.no in CardNo:
-            return f'c: {CardNo[self.no]}, pos: {self.pos}'
+        if self.verbose == 0:
+            if self.no in CardNo:
+                return f'{CardNo[self.no]}'
+            else:
+                return f'{SpecialCardNo[self.no]}'
         else:
-            return f'c: {SpecialCardNo[self.no]}, pos: {self.pos}'
+            if self.no in CardNo:
+                return f'c: {CardNo[self.no]}, pos: {self.pos}'
+            else:
+                return f'c: {SpecialCardNo[self.no]}, pos: {self.pos}'
 
 
 class Slot(Card):
@@ -27,7 +34,7 @@ class CardGame(object):
             for j in range(len(col)):
                 _table[-1].append(Card(col[j], (i, j)))
         self.table = _table
-        self.free_slot = Card(-1, (10, 0))
+        self.free_slot = [Card(-1, (10, 0))]
 
     def get_action(self):
         movable_cards = []
@@ -49,8 +56,8 @@ class CardGame(object):
             if len(col) > 1 and not stack:
                 movable_cards.append(col[-1])
 
-        if self.free_slot.no != -1:
-            movable_cards.append(self.free_slot)
+        if self.free_slot[-1].no != -1:
+            movable_cards.append(self.free_slot[-1])
 
         available_slots = []
         for i in range(Cfg.COL):
@@ -58,19 +65,21 @@ class CardGame(object):
             if last_card.no != -2:
                 available_slots.append(last_card)
 
-        if self.free_slot.no == -1:
-            available_slots.append(self.free_slot)
+        if self.free_slot[-1].no == -1:
+            available_slots.append(self.free_slot[-1])
 
         actions = []
         for s in available_slots:
             for c in movable_cards:
                 if s.pos[0] == c.pos[0]:
                     continue
-                if s.pos[0] == 10 and len(self.table[c.pos[0]]) != c.pos[1]:
+                if s.pos[0] == 10 and len(self.table[c.pos[0]]) - 1 != c.pos[1]:
                     continue
-                if s.no == self.table[c.pos[0]][c.pos[1] - 1]:
+                if c.pos[0] != 10 and \
+                        s.no == self.table[c.pos[0]][c.pos[1] - 1]:
                     continue
                 if s.pos[0] == 10 and \
+                        self.table[c.pos[0]][c.pos[1] - 1].no != -1 and \
                         self.available(self.table[c.pos[0]][c.pos[1] - 1].no,
                                        self.table[c.pos[0]][c.pos[1]].no):
                     continue
@@ -84,12 +93,11 @@ class CardGame(object):
             card_b = self.table[card_b_pos[0]][card_b_pos[1]]
             self.table[card_b_pos[0]].remove(card_b)
             card_b.pos = (10, 0)
-            self.free_slot = card_b
+            self.free_slot.append(card_b)
         elif card_b_pos[0] == 10:
-            card_b = self.free_slot
+            card_b = self.free_slot.pop()
             card_b.pos = (card_a_pos[0], len(self.table[card_a_pos[0]]))
             self.table[card_a_pos[0]].append(card_b)
-            self.free_slot = Card(-1, (10, 0))
         else:
             card_b = self.table[card_b_pos[0]][card_b_pos[1]]
             cards = [card_b]
@@ -131,7 +139,7 @@ class CardGame(object):
                 is_game_over = False
             if not is_game_over:
                 break
-        if self.free_slot.no != -1:
+        if self.free_slot[-1].no != -1:
             is_game_over = False
         if not is_game_over and not self.get_action():
             is_game_over = True

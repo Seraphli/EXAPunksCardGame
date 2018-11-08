@@ -7,7 +7,6 @@ import copy
 from cfg import CardNo, Cfg
 from auto_play import uct_play_game
 import time
-from direct_input import PressLMouse, ReleaseLMouse
 
 
 class CVProc(object):
@@ -25,10 +24,7 @@ class CVProc(object):
             if min_val < 0.001:
                 return k
 
-    def get_card_table(self):
-        im = ImageGrab.grab()
-        im.save('snapshot.png', 'PNG')
-        im = cv2.imread('snapshot.png')
+    def get_card_table(self, im):
         table = []
         readable_table = []
         for i in range(Cfg.COL):
@@ -55,6 +51,7 @@ def convert_pos(idxes):
 
 
 def perform_moves(moves):
+    from direct_input import PressLMouse, ReleaseLMouse
     for move in moves:
         s, c = move
         start_pos = convert_pos(c)
@@ -69,10 +66,26 @@ def perform_moves(moves):
         time.sleep(0.1)
 
 
+def test_play():
+    im = cv2.imread('snapshot.png')
+    cvp = CVProc()
+    table, readable_table = cvp.get_card_table(im)
+    cg = CardGameState(copy.deepcopy(table))
+
+
+def debug_play():
+    import pickle
+    with open('cg.pkl', 'rb') as f:
+        cg = pickle.load(f)
+    cg.get_moves()
+
+
 def main():
+    from direct_input import PressLMouse, ReleaseLMouse
     # Sleep 5 sec for user to switch to game
     time.sleep(5)
     n_game = 2
+    cvp = CVProc()
     for _ in range(n_game):
         # Start new game
         pyautogui.moveTo(1375, 900)
@@ -81,8 +94,10 @@ def main():
         ReleaseLMouse(0, 0)
         time.sleep(12)
 
-        cvp = CVProc()
-        table, readable_table = cvp.get_card_table()
+        im = ImageGrab.grab()
+        im.save('snapshot.png', 'PNG')
+        im = cv2.imread('snapshot.png')
+        table, readable_table = cvp.get_card_table(im)
         cg = CardGameState(copy.deepcopy(table))
         moves = uct_play_game(cg)
         if moves:
@@ -92,3 +107,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+    # test_play()
+    # debug_play()
