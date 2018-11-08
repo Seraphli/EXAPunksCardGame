@@ -46,8 +46,8 @@ def convert_pos(idxes):
     if idxes[0] == 10:
         return 1425, 300
     else:
-        return (Cfg.X0 + idxes[0] * Cfg.X_INTERVAL,
-                Cfg.Y0 + (idxes[1] - 1) * Cfg.Y_INTERVAL)
+        return (Cfg.X0 + idxes[0] * Cfg.X_INTERVAL + 5,
+                Cfg.Y0 + (idxes[1] - 1) * Cfg.Y_INTERVAL + 5)
 
 
 def perform_moves(moves):
@@ -56,14 +56,11 @@ def perform_moves(moves):
         s, c = move
         start_pos = convert_pos(c)
         end_pos = convert_pos(s)
-        pyautogui.moveTo(start_pos[0], start_pos[1], duration=0.1)
-        time.sleep(0.1)
+        pyautogui.moveTo(start_pos[0], start_pos[1], duration=0.2)
         PressLMouse(0, 0)
-        time.sleep(0.1)
-        pyautogui.moveTo(end_pos[0], end_pos[1] + 30, duration=0.1)
-        time.sleep(0.1)
+        time.sleep(0.2)
+        pyautogui.moveTo(end_pos[0], end_pos[1] + 30, duration=0.2)
         ReleaseLMouse(0, 0)
-        time.sleep(0.1)
 
 
 def test_play():
@@ -82,17 +79,17 @@ def debug_play():
 
 def main():
     from direct_input import PressLMouse, ReleaseLMouse
-    # Sleep 5 sec for user to switch to game
-    time.sleep(5)
-    n_game = 2
+    # Sleep 3 sec for user to switch to game
+    time.sleep(3)
+    n_game = 10
     cvp = CVProc()
     for _ in range(n_game):
         # Start new game
         pyautogui.moveTo(1375, 900)
         PressLMouse(0, 0)
-        time.sleep(0.1)
+        time.sleep(0.2)
         ReleaseLMouse(0, 0)
-        time.sleep(12)
+        time.sleep(8)
 
         im = ImageGrab.grab()
         im.save('snapshot.png', 'PNG')
